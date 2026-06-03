@@ -1,0 +1,91 @@
+name: Prepare Release
+
+# Bumps the package version, builds it as a sanity gate, commits and tags the
+# bump, then creates a GitHub Release. Publishing to npm is handled by
+# publish.yml.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: 'Release type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      dry-run:
+        description: 'Dry run (no commit, tag, or release)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          token: ${{ secrets.RELEASE_PAT }}
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ secrets.RELEASE_PAT }}@github.com/${{ github.repository }}"
+
+      - name: Bump version
+        id: version
+        run: |
+          npm version "${{ inputs.release-type }}" --no-git-tag-version
+          NEW_VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure tag does not exist
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Tag $TAG already exists; aborting." && exit 1
+          fi
+
+      - name: Build library
+        run: npm run build
+
+      - name: Commit and tag
+        if: success() && inputs.dry-run == false && github.ref == 'refs/heads/main'
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.version }}"
+          TAG="v${NEW_VERSION}"
+          git commit -am "chore(release): v${NEW_VERSION}"
+          git push origin HEAD
+          git tag -a "$TAG" -m "release $TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        if: success() && inputs.dry-run == false && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: 'v${{ steps.version.outputs.version }}'
+          generate_release_notes: true
