@@ -1,33 +1,44 @@
 name: Publish
 
-# Builds and publishes @miragon/create-append-c7-element-templates to npm.
-# Manual workflow_dispatch only; uses the version in package.json.
-
+# Real publishes are only called by release-please.yml so npm Trusted
+# Publishing can validate the top-level workflow. Manual runs are always dry
+# runs; retry a failed real publish by re-running its original publish job.
 on:
   workflow_dispatch:
     inputs:
-      dry-run:
-        description: 'Dry run (npm publish --dry-run)'
+      tag:
+        description: 'Release tag to validate (for example, v0.2.0). Empty uses the selected branch.'
         required: false
-        type: boolean
-        default: true
-
-permissions:
-  contents: read
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Release tag to check out and publish (for example, v0.2.0).'
+        required: true
+        type: string
 
 concurrency:
-  group: publish
+  group: npm-publish
   cancel-in-progress: false
 
 jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required for npm Trusted Publishing (OIDC) to mint a provenance token.
+      id-token: write
+    env:
+      PACKAGE_NAME: '@miragon/create-append-c7'
+      EFFECTIVE_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -37,20 +48,68 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
+      # Trusted Publishing requires npm >= 11.5.1; Node 22 ships an older npm.
+      - name: Upgrade npm for Trusted Publishing
+        run: npm install --global npm@11
+
+      - name: Verify release tag matches package version
+        id: package
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          VERSION=$(node --print "require('./package.json').version")
+          EXPECTED_TAG="v${VERSION}"
+
+          if [[ -z "$RELEASE_TAG" && "$EFFECTIVE_DRY_RUN" != 'true' ]]; then
+            echo 'A release tag is required for a real publish.' >&2
+            exit 1
+          fi
+
+          if [[ -n "$RELEASE_TAG" && "$RELEASE_TAG" != "$EXPECTED_TAG" ]]; then
+            echo "Release tag $RELEASE_TAG does not match package version $VERSION (expected $EXPECTED_TAG)." >&2
+            exit 1
+          fi
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: Install dependencies
         run: npm install
 
       - name: Build library
         run: npm run build
 
-      - name: Dry-run publish
-        if: inputs.dry-run == true
-        run: npm publish --access public --dry-run
+      - name: Check whether version is already published
+        id: published
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          STDOUT_FILE="$RUNNER_TEMP/npm-view.stdout"
+          STDERR_FILE="$RUNNER_TEMP/npm-view.stderr"
+
+          if npm view "$PACKAGE_NAME@$VERSION" version --json >"$STDOUT_FILE" 2>"$STDERR_FILE"; then
+            echo 'already=true' >> "$GITHUB_OUTPUT"
+            echo "$PACKAGE_NAME@$VERSION is already on npm."
+          elif grep -Eiq 'E404|404 Not Found' "$STDOUT_FILE" "$STDERR_FILE"; then
+            echo 'already=false' >> "$GITHUB_OUTPUT"
+            echo "$PACKAGE_NAME@$VERSION is not yet on npm."
+          else
+            echo 'Could not determine whether the version is published; refusing to continue.' >&2
+            cat "$STDOUT_FILE" "$STDERR_FILE" >&2
+            exit 1
+          fi
+
+      - name: Publish (dry run)
+        if: env.EFFECTIVE_DRY_RUN == 'true'
+        # --force only bypasses npm's duplicate-version rejection so a manual
+        # dry run can validate the currently published version's payload.
+        run: npm publish --access public --dry-run --force
 
       - name: Publish to npm
-        if: inputs.dry-run == false
-        run: npm publish --access public
+        if: env.EFFECTIVE_DRY_RUN == 'false' && steps.published.outputs.already == 'false'
+        run: npm publish --access public --provenance
+
+      - name: Skip already-published version
+        if: env.EFFECTIVE_DRY_RUN == 'false' && steps.published.outputs.already == 'true'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ steps.package.outputs.version }}
+        run: echo "$PACKAGE_NAME@$VERSION is already published; nothing to do."
