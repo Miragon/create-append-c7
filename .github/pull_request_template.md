@@ -9,7 +9,7 @@ Closes #
 ## Author checklist
 
 - [ ] PR title follows Conventional Commits (`<type>(<scope>): <subject>`; breaking changes are marked with `!`)
-- [ ] `npm run build` succeeds
+- [ ] `yarn check` succeeds
 - [ ] Tests added or updated (or N/A)
 - [ ] Documentation updated (or N/A)
 - [ ] Public API, type, and peer-dependency changes are documented (or N/A)
