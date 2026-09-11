@@ -31,7 +31,6 @@ jobs:
       # Required for npm Trusted Publishing (OIDC) to mint a provenance token.
       id-token: write
     env:
-      PACKAGE_NAME: '@miragon/create-append-c7'
       EFFECTIVE_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
 
     steps:
@@ -46,14 +45,11 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
 
-      # Trusted Publishing requires npm >= 11.5.1; Node 22 ships an older npm.
-      - name: Upgrade npm for Trusted Publishing
-        run: npm install --global npm@11
+      - name: Enable Yarn via Corepack
+        run: corepack enable
 
       - name: Verify release tag matches package version
-        id: package
         env:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
@@ -70,49 +66,17 @@ jobs:
             exit 1
           fi
 
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-
       - name: Install dependencies
-        run: npm install
+        run: yarn install --immutable
 
       - name: Install browser for publish checks
-        run: npx playwright install --with-deps chromium
+        run: yarn playwright install --with-deps chromium
 
-      - name: Build library
-        run: npm run build
-
-      - name: Check whether version is already published
-        id: published
-        env:
-          VERSION: ${{ steps.package.outputs.version }}
-        run: |
-          STDOUT_FILE="$RUNNER_TEMP/npm-view.stdout"
-          STDERR_FILE="$RUNNER_TEMP/npm-view.stderr"
-
-          if npm view "$PACKAGE_NAME@$VERSION" version --json >"$STDOUT_FILE" 2>"$STDERR_FILE"; then
-            echo 'already=true' >> "$GITHUB_OUTPUT"
-            echo "$PACKAGE_NAME@$VERSION is already on npm."
-          elif grep -Eiq 'E404|404 Not Found' "$STDOUT_FILE" "$STDERR_FILE"; then
-            echo 'already=false' >> "$GITHUB_OUTPUT"
-            echo "$PACKAGE_NAME@$VERSION is not yet on npm."
-          else
-            echo 'Could not determine whether the version is published; refusing to continue.' >&2
-            cat "$STDOUT_FILE" "$STDERR_FILE" >&2
-            exit 1
-          fi
-
+      # Yarn runs browser tests in prepublish and builds in prepack.
       - name: Publish (dry run)
         if: env.EFFECTIVE_DRY_RUN == 'true'
-        # --force only bypasses npm's duplicate-version rejection so a manual
-        # dry run can validate the currently published version's payload.
-        run: npm publish --access public --dry-run --force
+        run: yarn npm publish --access public --dry-run
 
       - name: Publish to npm
-        if: env.EFFECTIVE_DRY_RUN == 'false' && steps.published.outputs.already == 'false'
-        run: npm publish --access public --provenance
-
-      - name: Skip already-published version
-        if: env.EFFECTIVE_DRY_RUN == 'false' && steps.published.outputs.already == 'true'
-        env:
-          VERSION: ${{ steps.package.outputs.version }}
-        run: echo "$PACKAGE_NAME@$VERSION is already published; nothing to do."
+        if: env.EFFECTIVE_DRY_RUN == 'false'
+        run: yarn npm publish --access public --provenance --tolerate-republish

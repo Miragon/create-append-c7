@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Fetch and update latest `npm` packages
+  # Yarn uses the npm ecosystem; Dependabot updates yarn.lock.
   - package-ecosystem: npm
     directory: "/"
     target-branch: "main"

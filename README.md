@@ -36,7 +36,7 @@ step.
 ## Install
 
 ```bash
-npm install @miragon/create-append-c7
+yarn add @miragon/create-append-c7
 ```
 
 ### Peer dependencies
@@ -56,6 +56,8 @@ The tested host combinations are:
 |---:|---:|---:|
 | 18.16.1 | 1.2.0 | 2.27.0 |
 | 18.25.1 | 2.0.0 | 2.33.0 |
+| 18.28.0 | 1.2.0 | 2.35.0 |
+| 18.28.0 | 2.0.0 | 2.35.0 |
 
 Create/append 2.x itself requires bpmn-js 18.22 or newer; its stricter host
 requirements still apply.
@@ -110,12 +112,40 @@ Canceled previews do not affect the diagram or command history. Once placed,
 one undo removes the whole configured creation; redo restores the recorded
 bindings without applying them a second time.
 
+## Development
+
+Use Node.js 22 and Corepack. The repository pins Yarn 4.18.0 and uses
+`node_modules` for dependency resolution.
+
+```bash
+corepack enable
+yarn install --immutable
+yarn playwright install chromium
+yarn check
+yarn npm audit --all --recursive --severity high
+```
+
+`yarn check` runs the Chromium tests and validates the package contents;
+`prepack` builds the JavaScript and declarations. Use `yarn build` to compile
+without running tests. Commit `yarn.lock` when changing dependencies.
+
 ## Releases
 
 Maintainers use [Conventional Commits](https://www.conventionalcommits.org/) to
 drive version bumps and release notes. Merge the release-please PR to create the
-matching GitHub release and publish it to npm. If publishing fails, retry the
-failed publish job from that original release workflow run.
+matching GitHub release and publish it to npm using Yarn and OIDC Trusted
+Publishing. If publishing fails, retry the failed publish job from that original
+release workflow run. Already-published
+versions are skipped. Manual Publish workflow runs only validate the package;
+they never upload it. The supplied release tag must match the package version.
+
+For a local publish preview after installing Chromium, run:
+
+```bash
+yarn npm publish --access public --dry-run
+```
+
+Publishing runs the browser tests in `prepublish` and builds in `prepack`.
 
 ## License
 

@@ -20,10 +20,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
+      - name: Enable Yarn via Corepack
+        run: corepack enable
       - name: Install dependencies
-        run: npm install
+        run: yarn install --immutable
       - name: Lint (TypeScript)
-        run: ./node_modules/.bin/tsc -p tsconfig.lib.json --noEmit
+        run: yarn tsc -p tsconfig.lib.json --noEmit
 
   audit:
     runs-on: ubuntu-latest
@@ -32,10 +34,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
+      - name: Enable Yarn via Corepack
+        run: corepack enable
       - name: Install dependencies
-        run: npm install
+        run: yarn install --immutable
       - name: Audit
-        run: npm audit --audit-level=high
+        run: yarn npm audit --all --recursive --severity high
 
   build:
     runs-on: ubuntu-latest
@@ -44,12 +48,13 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - run: npm install
-      - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      # Pack sanity check: fails the build if the published payload would be
-      # malformed (e.g. missing dist/ from a broken tsc step).
-      - run: npm publish --access public --dry-run
+      - name: Enable Yarn via Corepack
+        run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn playwright install --with-deps chromium
+      # Yarn runs browser tests in prepublish and builds in prepack.
+      # Validate the package without uploading it to the registry.
+      - run: yarn npm publish --access public --dry-run
 
   ci:
     if: always()

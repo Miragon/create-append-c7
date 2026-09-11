@@ -12,8 +12,9 @@
         "build": "tsc -p tsconfig.lib.json",
         "test": "vitest run --browser.enabled",
         "test:browser": "vitest run --browser.enabled",
-        "check": "npm run build && npm test && npm pack --dry-run",
-        "prepublishOnly": "npm run check"
+        "check": "yarn test && yarn pack --dry-run",
+        "prepack": "yarn build",
+        "prepublish": "yarn test"
     },
     "keywords": [
         "bpmn-js",
@@ -46,9 +47,13 @@
         "bpmn-js-properties-panel": "5.65.0",
         "camunda-bpmn-js-behaviors": "1.18.0",
         "camunda-bpmn-moddle": "8.0.1",
+        "diagram-js": "15.26.0",
+        "moddle": "8.2.1",
         "playwright": "1.63.0",
         "typescript": "7.0.2",
+        "vite": "8.3.0",
         "vitest": "5.0.0",
         "zeebe-bpmn-moddle": "2.0.0"
-    }
+    },
+    "packageManager": "yarn@4.18.0"
 }
