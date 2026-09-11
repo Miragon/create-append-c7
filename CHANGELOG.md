@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.1](https://github.com/Miragon/create-append-c7/compare/v1.0.0...v1.0.1) (2026-09-11)
+
+
+### 🐞 Bug Fixes
+
+* **ci:** match npm trusted publisher environment ([#12](https://github.com/Miragon/create-append-c7/issues/12)) ([279077b](https://github.com/Miragon/create-append-c7/commit/279077b67e886cc3b5ddf75f80340afc0b8f813c))
+
+
+### 🛠️ Misc
+
+* **deps-dev:** bump bpmn-js-create-append-anything ([#11](https://github.com/Miragon/create-append-c7/issues/11)) ([084b545](https://github.com/Miragon/create-append-c7/commit/084b54552a54ed30f1d7c1558304613b57406480))
+
 ## [1.0.0](https://github.com/Miragon/create-append-c7/compare/v0.1.0...v1.0.0) (2026-09-11)
 
 
