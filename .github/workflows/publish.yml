@@ -26,6 +26,7 @@ jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
+    environment: npm-registry
     permissions:
       contents: read
       # Required for npm Trusted Publishing (OIDC) to mint a provenance token.
