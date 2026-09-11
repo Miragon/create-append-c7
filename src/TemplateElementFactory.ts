@@ -1,97 +1,97 @@
-/**
- * Creates bpmn-js shapes preconfigured with a Camunda 7 element template.
- *
- * Handles the three-step process:
- * 1. Create the base shape from the template's `appliesTo` / `elementType`.
- * 2. Stamp `camunda:modelerTemplate` and version onto the business object.
- * 3. Execute the properties-panel command to apply template bindings.
- */
 import { getBusinessObject } from "bpmn-js/lib/util/ModelUtil";
 
 /**
- * Subset of the element template schema needed to create a preconfigured shape.
+ * The subset of the C7 element-template schema needed by the adapter.
+ * Additional template fields are deliberately retained for the upstream
+ * change-template command.
  */
-interface C7ElementTemplate {
+export interface C7ElementTemplate {
     id: string;
     version?: number;
-    appliesTo: string[];
+    appliesTo?: string[];
     elementType?: {
         value?: string;
         eventDefinition?: string;
     };
+    [key: string]: unknown;
+}
+
+export interface CreateElementOptions {
+    presetId?: string;
 }
 
 /**
- * Factory that produces bpmn-js shapes with a Camunda 7 element template
- * already applied, ready for placement on the canvas.
+ * Creates detached C7 shapes and remembers the template that must be applied
+ * once the shape is attached to a diagram.
  */
 export class TemplateElementFactory {
-    static $inject = ["commandStack", "elementFactory"];
-
-    private readonly commandStack: any;
+    static $inject = ["elementFactory"];
 
     private readonly elementFactory: any;
 
-    /**
-     * @param commandStack The bpmn-js command stack service.
-     * @param elementFactory The bpmn-js element factory service.
-     */
-    constructor(commandStack: any, elementFactory: any) {
-        this.commandStack = commandStack;
+    private readonly pendingTemplates = new WeakMap<object, C7ElementTemplate>();
+
+    constructor(elementFactory: any) {
         this.elementFactory = elementFactory;
     }
 
     /**
-     * Creates a shape with the given element template applied.
-     *
-     * @param template The element template to apply.
-     * @returns The created bpmn-js shape with template bindings applied.
+     * Create a detached preview. No editing command is executed here because
+     * C7 bindings may need the shape's parent and the diagram definitions.
      */
-    create(template: C7ElementTemplate): any {
-        const element = this.createShape(template);
-        this.setModelerTemplate(element, template);
+    create(template: C7ElementTemplate, options: CreateElementOptions = {}): any {
+        if (!template) {
+            throw new Error("template is missing");
+        }
 
-        this.commandStack.execute("propertiesPanel.camunda.changeTemplate", {
-            element,
-            oldTemplate: null,
-            newTemplate: template,
-        });
+        if (options?.presetId !== undefined) {
+            throw new Error("C7 element template presets are not supported");
+        }
+
+        const selectedTemplate = cloneTemplate(template);
+        const type =
+            selectedTemplate.elementType?.value ?? selectedTemplate.appliesTo?.[0];
+
+        if (!type) {
+            throw new Error("template element type is missing");
+        }
+
+        const attrs: Record<string, unknown> = { type };
+
+        if (selectedTemplate.elementType?.eventDefinition) {
+            attrs.eventDefinitionType = selectedTemplate.elementType.eventDefinition;
+        }
+
+        const element = this.elementFactory.createShape(attrs);
+        const businessObject = getBusinessObject(element);
+
+        businessObject.set("camunda:modelerTemplate", selectedTemplate.id);
+        businessObject.set("camunda:modelerTemplateVersion", selectedTemplate.version);
+
+        this.pendingTemplates.set(element, selectedTemplate);
 
         return element;
     }
 
-    /**
-     * Creates the base shape from the template's type information.
-     *
-     * Uses `elementType.value` if specified, otherwise falls back to the
-     * first entry in `appliesTo`.
-     *
-     * @param template The element template.
-     * @returns The created bpmn-js shape.
-     */
-    private createShape(template: C7ElementTemplate): any {
-        const { appliesTo, elementType } = template;
-
-        const type = elementType?.value ?? appliesTo[0];
-        const attrs: Record<string, string> = { type };
-
-        if (elementType?.eventDefinition) {
-            attrs.eventDefinitionType = elementType.eventDefinition;
-        }
-
-        return this.elementFactory.createShape(attrs);
+    getPendingTemplate(element: object): C7ElementTemplate | undefined {
+        return this.pendingTemplates.get(element);
     }
 
-    /**
-     * Stamps the template ID and version onto the element's business object.
-     *
-     * @param element The bpmn-js shape.
-     * @param template The element template.
-     */
-    private setModelerTemplate(element: any, template: C7ElementTemplate): void {
-        const businessObject = getBusinessObject(element);
-
-        businessObject.set("camunda:modelerTemplate", template.id);
-        businessObject.set("camunda:modelerTemplateVersion", template.version);
+    consumePendingTemplate(element: object): void {
+        this.pendingTemplates.delete(element);
     }
+}
+
+function cloneTemplate<T>(value: T): T {
+    if (Array.isArray(value)) {
+        return value.map((entry) => cloneTemplate(entry)) as T;
+    }
+
+    if (value && typeof value === "object") {
+        return Object.fromEntries(
+            Object.entries(value).map(([key, entry]) => [key, cloneTemplate(entry)]),
+        ) as T;
+    }
+
+    return value;
 }

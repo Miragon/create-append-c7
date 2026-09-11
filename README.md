@@ -19,10 +19,16 @@ plugin can create elements that already carry an element template.
 ## Why this exists
 
 `bpmn-js-create-append-anything` calls `elementTemplates.createElement(template)`
-to instantiate a shape that is preconfigured with a template. The Camunda 7
-element-templates build does **not** ship `createElement`, so append-anything
-cannot create template-preconfigured elements out of the box. This module patches
-the missing method onto the C7 element-templates service at modeler startup.
+to instantiate a shape. The Camunda 7 element-templates build does **not** ship
+that method, so append-anything cannot create template-preconfigured elements
+out of the box. This module patches the missing method onto the C7
+element-templates service at modeler startup.
+
+The returned preview already has the resolved BPMN type, event definition, and
+template identity. Template bindings are deliberately deferred until the shape
+is placed on a diagram. This lets bindings safely access the process definitions
+and keeps creation, configuration, and automatic-append connections in one undo
+step.
 
 > The Camunda 8 (Cloud) build already ships `createElement`, so this polyfill is
 > only needed for the Camunda 7 (Platform) modeler.
@@ -41,7 +47,18 @@ hosts as peer dependencies:
 | Peer | Supported range |
 |---|---|
 | `bpmn-js` | `^18.0.0` |
-| `bpmn-js-create-append-anything` | `^1.2.0` |
+| `bpmn-js-create-append-anything` | `^1.2.0 \|\| ^2.0.0` |
+| `bpmn-js-element-templates` | `^2.27.0` |
+
+The tested host combinations are:
+
+| bpmn-js | Create/append | Element templates |
+|---:|---:|---:|
+| 18.16.1 | 1.2.0 | 2.27.0 |
+| 18.25.1 | 2.0.0 | 2.33.0 |
+
+Create/append 2.x itself requires bpmn-js 18.22 or newer; its stricter host
+requirements still apply.
 
 ## Usage
 
@@ -49,19 +66,49 @@ Register the module as an `additionalModule` when you construct the Camunda 7
 modeler:
 
 ```ts
+import { ElementTemplatesCoreModule } from "bpmn-js-element-templates/core";
+import { CreateAppendElementTemplatesModule } from "bpmn-js-create-append-anything";
 import { CreateAppendC7ElementTemplatesModule } from "@miragon/create-append-c7";
+import camundaModdle from "camunda-bpmn-moddle/resources/camunda.json";
 
 const modeler = new BpmnModeler({
     additionalModules: [
+        ElementTemplatesCoreModule,
+        CreateAppendElementTemplatesModule,
         CreateAppendC7ElementTemplatesModule,
-        // ...your other modules (e.g. CreateAppendElementTemplatesModule)
     ],
+    moddleExtensions: {
+        camunda: camundaModdle,
+    },
 });
 ```
 
-The module installs itself on init: it patches `elementTemplates.createElement`
-only when the host service does not already provide it, so it is safe to leave
-registered even if a future bpmn-js / Camunda build adds the method natively.
+Register the C7 element-templates module and create/append module as normal; this
+adapter does not install either host module for you. It patches
+`elementTemplates.createElement` only when the host service does not already
+provide it. Native implementations and their `templateElementFactory` service
+are left untouched, regardless of module registration order.
+
+The example uses the headless `ElementTemplatesCoreModule`. Applications that
+show template controls in the properties panel can register
+`ElementTemplatesPropertiesProviderModule` and its properties-panel dependencies
+instead; that module already includes the C7 core.
+
+`createElement(template, options?)` accepts omitted or empty options. C8-style
+template presets are not supported and a supplied `presetId` throws before a
+shape is allocated.
+
+## Timing and undo behavior
+
+Starting with 0.2.0, `createElement()` returns a detached preview without applied
+bindings. Bindings are applied by the upstream C7
+`propertiesPanel.camunda.changeTemplate` command during `shape.create`. Direct
+callers that previously inspected bindings before placement must move that work
+after creation completes.
+
+Canceled previews do not affect the diagram or command history. Once placed,
+one undo removes the whole configured creation; redo restores the recorded
+bindings without applying them a second time.
 
 ## Releases
 

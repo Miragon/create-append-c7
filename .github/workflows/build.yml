@@ -45,6 +45,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install
+      - run: npx playwright install --with-deps chromium
       - run: npm run build
       # Pack sanity check: fails the build if the published payload would be
       # malformed (e.g. missing dist/ from a broken tsc step).
