@@ -39,11 +39,11 @@
         "bpmn-js-element-templates": "^2.27.0"
     },
     "devDependencies": {
-        "@bpmn-io/properties-panel": "3.58.0",
+        "@bpmn-io/properties-panel": "3.58.1",
         "@vitest/browser-playwright": "5.0.5",
         "bpmn-js": "18.31.1",
         "bpmn-js-create-append-anything": "2.2.0",
-        "bpmn-js-element-templates": "2.40.1",
+        "bpmn-js-element-templates": "2.40.2",
         "bpmn-js-properties-panel": "5.65.3",
         "camunda-bpmn-js-behaviors": "1.18.0",
         "camunda-bpmn-moddle": "8.0.2",
