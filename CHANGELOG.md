@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.2](https://github.com/Miragon/create-append-c7/compare/v1.0.1...v1.0.2) (2026-11-13)
+
+
+### 🐞 Bug Fixes
+
+* **deps:** resolve high-severity audit advisories ([#25](https://github.com/Miragon/create-append-c7/issues/25)) ([a5c1136](https://github.com/Miragon/create-append-c7/commit/a5c1136f3b32d3e1219bd3f7230fb57563f28006))
+
+
+### 🛠️ Misc
+
+* add CODEOWNERS ([#22](https://github.com/Miragon/create-append-c7/issues/22)) ([02125b5](https://github.com/Miragon/create-append-c7/commit/02125b5da205a458cbb24751b741113a50ce4217))
+* **deps-dev:** bump the npm-minor-patch group across 1 directory with 10 updates ([#26](https://github.com/Miragon/create-append-c7/issues/26)) ([5fb1ed7](https://github.com/Miragon/create-append-c7/commit/5fb1ed71060220f0affe36adb445876868bdea13))
+* **deps-dev:** bump the npm-minor-patch group with 2 updates ([#28](https://github.com/Miragon/create-append-c7/issues/28)) ([a07a8f6](https://github.com/Miragon/create-append-c7/commit/a07a8f6b7b67b5017262f7f556de6283ed0b61b2))
+* **deps-dev:** bump the npm-minor-patch group with 5 updates ([#30](https://github.com/Miragon/create-append-c7/issues/30)) ([9a2ad74](https://github.com/Miragon/create-append-c7/commit/9a2ad74f5c9ff7743fc304744ca0a6c5140cd0f2))
+* **deps:** bump actions/create-github-app-token ([#18](https://github.com/Miragon/create-append-c7/issues/18)) ([f1ca5a1](https://github.com/Miragon/create-append-c7/commit/f1ca5a1d6df52b5a2b2bd8558ece880f804443e5))
+
 ## [1.0.1](https://github.com/Miragon/create-append-c7/compare/v1.0.0...v1.0.1) (2026-09-11)
 
 
