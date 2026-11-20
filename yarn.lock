@@ -205,9 +205,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bpmn-io/properties-panel@npm:3.58.1":
-  version: 3.58.1
-  resolution: "@bpmn-io/properties-panel@npm:3.58.1"
+"@bpmn-io/properties-panel@npm:3.59.0":
+  version: 3.59.0
+  resolution: "@bpmn-io/properties-panel@npm:3.59.0"
   dependencies:
     "@bpmn-io/feel-editor": "npm:^2.8.1"
     "@bpmn-io/feelers-editor": "npm:^1.1.1"
@@ -222,7 +222,7 @@ __metadata:
     focus-trap: "npm:^8.0.0"
     min-dash: "npm:^5.1.0"
     min-dom: "npm:^5.3.0"
-  checksum: 10c0/aa0bf54fe04f57179a609f0d49532d672363de3b407d19721dad17f989d0d5ab7a17289c8314191b249ec83c1f681657933efd1b77ef37b1e113a8dc8736a8df
+  checksum: 10c0/9b6dae888662ced59a0d1160cfd4f59f16e9283c680583d707b533ca86bc5bcc30391db9e88b510be2338d1e36a156dbdec3a18c8fa54f7f174d7dc79ee2002f
   languageName: node
   linkType: hard
 
@@ -499,7 +499,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@miragon/create-append-c7@workspace:."
   dependencies:
-    "@bpmn-io/properties-panel": "npm:3.58.1"
+    "@bpmn-io/properties-panel": "npm:3.59.0"
     "@vitest/browser-playwright": "npm:5.1.0"
     bpmn-js: "npm:18.31.1"
     bpmn-js-create-append-anything: "npm:2.2.0"
@@ -507,11 +507,11 @@ __metadata:
     bpmn-js-properties-panel: "npm:5.65.3"
     camunda-bpmn-js-behaviors: "npm:1.18.0"
     camunda-bpmn-moddle: "npm:8.0.2"
-    diagram-js: "npm:15.28.1"
+    diagram-js: "npm:15.29.1"
     moddle: "npm:8.2.1"
-    playwright: "npm:1.65.0"
+    playwright: "npm:1.65.1"
     typescript: "npm:7.0.2"
-    vite: "npm:8.3.7"
+    vite: "npm:8.3.8"
     vitest: "npm:5.1.0"
     zeebe-bpmn-moddle: "npm:2.0.0"
   peerDependencies:
@@ -1161,7 +1161,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diagram-js@npm:15.28.1, diagram-js@npm:^15.28.0":
+"diagram-js@npm:15.29.1":
+  version: 15.29.1
+  resolution: "diagram-js@npm:15.29.1"
+  dependencies:
+    "@bpmn-io/diagram-js-ui": "npm:^0.2.4"
+    clsx: "npm:^2.1.1"
+    didi: "npm:^12.0.0"
+    inherits-browser: "npm:^0.1.0"
+    min-dash: "npm:^5.1.0"
+    min-dom: "npm:^5.3.0"
+    object-refs: "npm:^0.4.0"
+    path-intersection: "npm:^4.1.0"
+    tiny-svg: "npm:^4.1.4"
+  checksum: 10c0/886070b7c7835e969bec33443d2810ffaa417247c7102b4f9db4fc14a3d6c320d13145da986a08f0cadc6f22c35c84e6e87366d090e81c6ac891a9d160cf5530
+  languageName: node
+  linkType: hard
+
+"diagram-js@npm:^15.28.0":
   version: 15.28.1
   resolution: "diagram-js@npm:15.28.1"
   dependencies:
@@ -1182,6 +1199,13 @@ __metadata:
   version: 11.0.0
   resolution: "didi@npm:11.0.0"
   checksum: 10c0/e4516b9a5189b1803cfbcce2f520d625c172fa124ee1e7f74c54ae123ff202cb80175be93fca6cfe4e332003e0a0bf2a782de2813f2d78508b4115e5d7cd6bf1
+  languageName: node
+  linkType: hard
+
+"didi@npm:^12.0.0":
+  version: 12.0.0
+  resolution: "didi@npm:12.0.0"
+  checksum: 10c0/86e8477cd0bc4e8bdcce0986268cdaf20ea7b5ec5deeb2d3a2dde925c176a2b3380194001ff83cec69f1602fd68a6801022fc6f75dff0e512f17111980bcd314
   languageName: node
   linkType: hard
 
@@ -1637,23 +1661,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.65.0":
-  version: 1.65.0
-  resolution: "playwright-core@npm:1.65.0"
+"playwright-core@npm:1.65.1":
+  version: 1.65.1
+  resolution: "playwright-core@npm:1.65.1"
   bin:
     playwright-core: cli.js
-  checksum: 10c0/ed905c6fc2457a725c3fdb3ad4500f43c7a1bb2c6e4e8c708e1e314930c7dce446a5756ad073425bf3c6e3ca975e5a35fb0221118e2d51ef7b4b6c6d13d0644c
+  checksum: 10c0/4406d4f8eff668a93aaada8382d25fcce8da5f679e9f31311888178d631ed0270eb40c0288129e41e15709c957a31932cac9753fdb332547a19bc3541d317e44
   languageName: node
   linkType: hard
 
-"playwright@npm:1.65.0":
-  version: 1.65.0
-  resolution: "playwright@npm:1.65.0"
+"playwright@npm:1.65.1":
+  version: 1.65.1
+  resolution: "playwright@npm:1.65.1"
   dependencies:
-    playwright-core: "npm:1.65.0"
+    playwright-core: "npm:1.65.1"
   bin:
     playwright: cli.js
-  checksum: 10c0/a7d71f3ca5bcad0531b5f3c39ae1a9be0da8e74be6fee8510d99b9f5fc07fd5b3d889aa4ca487c70ca29aba8625f74e3c2c7473b4c8a784dc14fefff80474ac3
+  checksum: 10c0/30ce029c9fb2a6e88cf81b150b978fd60edb59b8af5a6460f5576f0fe6e2bb739454109f0ce4904eac63cb2cf10390518d7d71d335fd695b5897734a5af7250d
   languageName: node
   linkType: hard
 
@@ -2063,9 +2087,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:8.3.7":
-  version: 8.3.7
-  resolution: "vite@npm:8.3.7"
+"vite@npm:8.3.8":
+  version: 8.3.8
+  resolution: "vite@npm:8.3.8"
   dependencies:
     fsevents: "npm:~2.3.3"
     lightningcss: "npm:^1.33.0"
@@ -2116,7 +2140,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/5433e9c0120edd79479e02d943bcde19ecd74be4c6e8e220bdb120693229425858620d07665baa4adafbcc3d1096a70c86ef179653fa310d777aaed8f6fe74cf
+  checksum: 10c0/21bf5b04159214fbc9f42e297afd26398a3630704959f85290e8b8eb9cac49be20a6a37a5765bfdb997b606c21ccba99f991671f81c5da5a590ae5cedad3e127
   languageName: node
   linkType: hard
 
